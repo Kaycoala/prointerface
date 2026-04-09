@@ -832,21 +832,59 @@
           </a>
         </div>
       </div>
+      <!-- ============================================== -->
+      <!-- FORMULÁRIO DE CONTATO COM ENVIO DE EMAIL       -->
+      <!-- ============================================== -->
+      <!-- 
+        COMO FUNCIONA:
+        Este formulário usa o serviço FormSubmit (https://formsubmit.co)
+        para enviar os dados diretamente para o seu email.
+        
+        CONFIGURAÇÃO:
+        1. Altere a variável EMAIL_DESTINO no script abaixo
+        2. Na primeira vez que alguém enviar, você receberá um email de confirmação
+        3. Clique no link de confirmação e o formulário estará ativo
+        
+        CAMPOS HIDDEN IMPORTANTES:
+        - _subject: Assunto do email que você receberá
+        - _captcha: Desativa o captcha (false = desativado)
+        - _template: Usa template "table" para email formatado
+        - _next: Página de redirecionamento após envio (mesma página com âncora)
+      -->
       <div class="contato-form-block fade-up">
         <h3>Envie uma mensagem</h3>
-        <div class="form-group">
-          <label>Seu nome</label>
-          <input type="text" placeholder="Como podemos te chamar?">
+        
+        <!-- Formulário com action dinâmico definido por JavaScript -->
+        <form id="contactForm" method="POST">
+          
+          <!-- Campos ocultos para configuração do FormSubmit -->
+          <input type="hidden" name="_subject" value="Nova mensagem do site ProInterface">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_next" id="redirectUrl">
+          
+          <div class="form-group">
+            <label for="nome">Seu nome</label>
+            <input type="text" id="nome" name="nome" placeholder="Como podemos te chamar?" required>
+          </div>
+          <div class="form-group">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="mensagem">Mensagem</label>
+            <textarea id="mensagem" name="mensagem" rows="4" placeholder="Conte-nos sobre seu projeto..." required></textarea>
+          </div>
+          
+          <!-- Botão de envio com estados visuais -->
+          <button type="submit" class="btn-form" id="submitBtn">Enviar mensagem</button>
+        </form>
+        
+        <!-- Mensagem de sucesso (oculta por padrão) -->
+        <div id="successMessage" style="display:none; text-align:center; padding:20px;">
+          <p style="color:var(--blue); font-weight:600; font-size:16px;">Mensagem enviada com sucesso!</p>
+          <p style="color:var(--gray-text); font-size:14px; margin-top:8px;">Entraremos em contato em breve.</p>
         </div>
-        <div class="form-group">
-          <label>E-mail</label>
-          <input type="email" placeholder="seu@email.com">
-        </div>
-        <div class="form-group">
-          <label>Mensagem</label>
-          <textarea rows="4" placeholder="Conte-nos sobre seu projeto..."></textarea>
-        </div>
-        <button class="btn-form" onclick="this.textContent='Mensagem enviada ✓'; this.style.background='#1e90ff';">Enviar mensagem</button>
       </div>
     </div>
   </div>
@@ -879,6 +917,123 @@
     });
   }, { threshold: 0.12 });
   faders.forEach(el => observer.observe(el));
+</script>
+
+<!-- ============================================== -->
+<!-- SCRIPT DE CONFIGURAÇÃO DO ENVIO DE EMAIL       -->
+<!-- ============================================== -->
+<!-- 
+  INSTRUÇÕES:
+  Este script configura o envio de emails do formulário de contato.
+  
+  PARA ALTERAR O EMAIL DE DESTINO:
+  1. Localize a variável EMAIL_DESTINO abaixo
+  2. Substitua pelo email desejado
+  3. Salve o arquivo
+  
+  IMPORTANTE:
+  - Na primeira vez, você receberá um email de confirmação do FormSubmit
+  - Você DEVE clicar no link de confirmação para ativar o envio
+  - Após confirmado, todos os formulários serão enviados automaticamente
+  
+  SERVIÇO UTILIZADO:
+  FormSubmit (https://formsubmit.co) - Gratuito, sem necessidade de backend
+-->
+<script>
+  // ================================================
+  // CONFIGURAÇÃO PRINCIPAL - ALTERE AQUI SEU EMAIL
+  // ================================================
+  
+  /**
+   * EMAIL_DESTINO: Email que receberá as mensagens do formulário
+   * 
+   * COMO USAR:
+   * - Substitua o email abaixo pelo seu email desejado
+   * - Exemplo: const EMAIL_DESTINO = "seuemail@gmail.com";
+   * 
+   * NOTA: Na primeira submissão, você receberá um email de confirmação.
+   *       Clique no link para ativar o formulário.
+   */
+  const EMAIL_DESTINO = "contato@prointerface.com.br";
+  
+  // ================================================
+  // FIM DA CONFIGURAÇÃO - NÃO ALTERE ABAIXO
+  // ================================================
+  
+  /**
+   * Inicialização do formulário de contato
+   * 
+   * Este código:
+   * 1. Define a URL de ação do formulário baseada no EMAIL_DESTINO
+   * 2. Configura a URL de redirecionamento após envio
+   * 3. Adiciona feedback visual durante o envio
+   */
+  (function initContactForm() {
+    // Elementos do DOM
+    const form = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const redirectInput = document.getElementById('redirectUrl');
+    
+    // Verifica se o formulário existe na página
+    if (!form) {
+      console.warn('[ProInterface] Formulário de contato não encontrado');
+      return;
+    }
+    
+    // Configura a URL do FormSubmit com o email de destino
+    // O FormSubmit usa o formato: https://formsubmit.co/EMAIL
+    form.action = 'https://formsubmit.co/' + EMAIL_DESTINO;
+    
+    // Configura a URL de redirecionamento após o envio
+    // Redireciona para a mesma página com parâmetro de sucesso
+    redirectInput.value = window.location.href.split('?')[0] + '?enviado=true#contato';
+    
+    /**
+     * Evento de submissão do formulário
+     * Adiciona feedback visual enquanto o formulário é enviado
+     */
+    form.addEventListener('submit', function() {
+      // Desabilita o botão para evitar duplo clique
+      submitBtn.disabled = true;
+      
+      // Altera o texto do botão para indicar envio
+      submitBtn.textContent = 'Enviando...';
+      
+      // Muda a cor do botão para feedback visual
+      submitBtn.style.background = 'var(--gray-mid)';
+      submitBtn.style.cursor = 'not-allowed';
+    });
+    
+    /**
+     * Verifica se o usuário voltou após envio bem-sucedido
+     * Mostra mensagem de sucesso se o parâmetro 'enviado' estiver na URL
+     */
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('enviado') === 'true') {
+      // Oculta o formulário
+      form.style.display = 'none';
+      
+      // Mostra a mensagem de sucesso
+      const successMessage = document.getElementById('successMessage');
+      if (successMessage) {
+        successMessage.style.display = 'block';
+      }
+      
+      // Remove o parâmetro da URL para limpar (sem recarregar a página)
+      const cleanUrl = window.location.href.split('?')[0] + '#contato';
+      window.history.replaceState({}, document.title, cleanUrl);
+      
+      // Após 5 segundos, mostra o formulário novamente para novos envios
+      setTimeout(function() {
+        form.style.display = 'block';
+        form.reset(); // Limpa os campos
+        successMessage.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Log de confirmação para debug
+    console.log('[ProInterface] Formulário configurado para enviar para:', EMAIL_DESTINO);
+  })();
 </script>
 </body>
 </html>
